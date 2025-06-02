@@ -5,26 +5,28 @@ import { handleDWG } from "@/utils/dwgHandler";
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    const question = formData.get("question") as string | null;
-    const files = formData.getAll("attachments") as File[];
+    const question = formData.get("question")?.toString() ?? null;
+    const rawFiles = formData.getAll("attachments");
+    const files = rawFiles.filter((f): f is File => f instanceof File);
 
     if (!question) {
       return NextResponse.json({ error: "Missing question" }, { status: 400 });
     }
 
-    const processed: File[] = [];
+    const processedFiles: File[] = [];
     for (const file of files) {
       if (file.name.toLowerCase().endsWith(".dwg")) {
-        processed.push(await handleDWG(file));
+        processedFiles.push(await handleDWG(file));
       } else {
-        processed.push(file);
+        processedFiles.push(file);
       }
     }
 
-    const answer = await askGemini(question, processed);
+    const answer = await askGemini(question, processedFiles);
+
     return NextResponse.json({ answer });
   } catch (err) {
-    console.error(err);
+    console.error("❌ Server Error in /api/ask:", err);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

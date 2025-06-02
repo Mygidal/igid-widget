@@ -1,4 +1,5 @@
 import Image from "next/image";
+import AIWidget from "@/components/AIWidget"; // 🧠 Импортираме чат бутона
 
 export default function Home() {
   return (
@@ -24,6 +25,9 @@ export default function Home() {
             Save and see your changes instantly.
           </li>
         </ol>
+
+        {/* 🧠 Тук се появява AIWidget */}
+        <AIWidget />
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           <a
