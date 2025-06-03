@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
 import AttachedFiles from "./AttachedFiles";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
   files?: { name: string; url: string }[];
-  preview?: boolean;
 };
 
 export default function AIWidget({
@@ -61,29 +59,26 @@ export default function AIWidget({
     const fileArray = Array.from(selectedFiles);
     setFiles(fileArray);
 
-    const previews = fileArray.map((file) => {
-      return new Promise<{ name: string; url: string }>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          resolve({
-            name: file.name,
-            url: typeof reader.result === "string" ? reader.result : "",
-          });
-        };
-        reader.readAsDataURL(file);
-      });
-    });
+    const previews = fileArray.map(
+      (file) =>
+        new Promise<{ name: string; url: string }>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({
+              name: file.name,
+              url: typeof reader.result === "string" ? reader.result : "",
+            });
+          };
+          reader.readAsDataURL(file);
+        })
+    );
 
-    Promise.all(previews).then((filePreviews) => {
-      setFilePreviews(filePreviews);
-    });
+    Promise.all(previews).then(setFilePreviews);
   };
 
   const handleAsk = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim() && files.length === 0) return;
-
-    setMessages((prev) => prev.filter((msg) => !msg.preview));
 
     const userMessage: Message = {
       role: "user",
@@ -135,6 +130,7 @@ export default function AIWidget({
       setStatus("error");
     }
   };
+
   const handleRemoveFile = (index: number) => {
     const updatedFiles = [...files];
     const updatedPreviews = [...filePreviews];
@@ -230,6 +226,7 @@ export default function AIWidget({
             </div>
           ))}
         </div>
+
         <AttachedFiles files={filePreviews} onRemove={handleRemoveFile} />
 
         <form
