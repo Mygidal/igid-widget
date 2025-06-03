@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+
 import AttachedFiles from "./AttachedFiles";
 
 type Message = {
@@ -36,7 +36,6 @@ export default function AIWidget({
   ]);
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
 
-  const router = useRouter();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -112,7 +111,7 @@ export default function AIWidget({
     files.forEach((file) => formData.append("attachment", file));
 
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/ask", {
         method: "POST",
         body: formData,
       });
