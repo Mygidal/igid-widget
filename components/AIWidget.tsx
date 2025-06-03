@@ -147,8 +147,8 @@ export default function AIWidget({
           <div className="flex-1 text-center">
             <h2 className="text-lg font-semibold text-blue-900">
               {lang === "bg" && "Консултация с ERMA AI"}
-              {lang === "en" && "Consult with ERMA AI"}
-              {lang === "de" && "Beratung mit ERMA AI"}
+              {lang === "en" && " ERMA AI"}
+              {lang === "de" && " ERMA AI"}
             </h2>
           </div>
           <button
