@@ -336,7 +336,7 @@ export default function AIWidget({
   return (
     <div>
       {/* 📱 Мобилен - fullscreen */}
-      <div className="sm:hidden fixed inset-0 flex flex-col overflow-x-hidden bg-gradient-to-br from-blue-50 to-gray-100">
+      <div className="flex flex-1 w-full max-w-[100vw] flex-col rounded-none border border-gray-200 bg-white shadow-xl">
         {renderChatBody()}
       </div>
 
