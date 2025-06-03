@@ -334,12 +334,11 @@ export default function AIWidget({
   }
 
   return (
-    <div>
-      {/* 📱 Мобилен - fullscreen */}
-      <div className="flex flex-1 w-full max-w-[100vw] flex-col rounded-none border border-gray-200 bg-white shadow-xl">
-        {renderChatBody()}
-      </div>
-
+    <div
+      ref={chatContainerRef}
+      className="chat-container-wrapper flex-1 space-y-4 overflow-y-auto bg-gray-50 px-4 py-4"
+      style={{ WebkitOverflowScrolling: "touch" }}
+    >
       {/* 🖥 Десктоп - долу вдясно */}
       <div className="hidden sm:flex fixed bottom-4 right-4 z-50 w-[400px] h-[90vh] rounded-xl border border-gray-200 bg-white shadow-xl flex-col overflow-hidden">
         {renderChatBody()}
