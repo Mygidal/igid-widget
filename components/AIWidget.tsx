@@ -76,15 +76,6 @@ export default function AIWidget({
 
     Promise.all(previews).then((filePreviews) => {
       setFilePreviews(filePreviews);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "user",
-          content: question || "",
-          files: filePreviews,
-          preview: true,
-        },
-      ]);
     });
   };
 
@@ -151,16 +142,6 @@ export default function AIWidget({
     updatedPreviews.splice(index, 1);
     setFiles(updatedFiles);
     setFilePreviews(updatedPreviews);
-
-    if (updatedFiles.length === 0 && !question.trim()) {
-      setMessages((prev) => prev.filter((msg) => !msg.preview));
-    } else {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.preview ? { ...msg, files: updatedPreviews } : msg
-        )
-      );
-    }
   };
 
   return (
@@ -244,11 +225,6 @@ export default function AIWidget({
                       </div>
                     ))}
                   </div>
-                )}
-                {msg.preview && (
-                  <span className="mt-1 block text-xs text-yellow-400">
-                    (Преглед, не е изпратен)
-                  </span>
                 )}
               </div>
             </div>
