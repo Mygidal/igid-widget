@@ -147,8 +147,8 @@ export default function AIWidget({
           <div className="flex-1 text-center">
             <h2 className="text-lg font-semibold text-blue-900">
               {lang === "bg" && "Консултация с ERMA AI"}
-              {lang === "en" && " ERMA AI"}
-              {lang === "de" && " ERMA AI"}
+              {lang === "en" && "ERMA AI"}
+              {lang === "de" && "ERMA AI"}
             </h2>
           </div>
           <button
@@ -283,7 +283,6 @@ export default function AIWidget({
             rows={1}
             className="flex-1 text-sm border-none outline-none placeholder-gray-400 resize-none overflow-hidden bg-transparent leading-[1.4rem] min-h-[36px] py-[6px] pl-2"
           />
-
           <button
             type="submit"
             disabled={
