@@ -1,20 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import AttachedFiles from "./AttachedFiles";
 
 type Message = {
   role: "user" | "assistant";
   content: string;
   files?: { name: string; url: string }[];
-  preview?: boolean;
 };
 
 export default function AIAssistant({
   lang = "bg",
+  onClose,
 }: {
   lang?: "bg" | "en" | "de";
+  onClose: () => void;
 }) {
   const [files, setFiles] = useState<File[]>([]);
   const [filePreviews, setFilePreviews] = useState<
@@ -34,7 +34,6 @@ export default function AIAssistant({
   ]);
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
 
-  const router = useRouter();
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -54,13 +53,12 @@ export default function AIAssistant({
   }, [question]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (!selectedFiles) return;
+    if (!e.target.files) return;
 
-    const fileArray = Array.from(selectedFiles);
-    setFiles(fileArray);
+    const selectedFiles = Array.from(e.target.files);
+    setFiles(selectedFiles);
 
-    const previews = fileArray.map(
+    const previews = selectedFiles.map(
       (file) =>
         new Promise<{ name: string; url: string }>((resolve) => {
           const reader = new FileReader();
@@ -74,25 +72,12 @@ export default function AIAssistant({
         })
     );
 
-    Promise.all(previews).then((filePreviews) => {
-      setFilePreviews(filePreviews);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "user",
-          content: question || "",
-          files: filePreviews,
-          preview: true,
-        },
-      ]);
-    });
+    Promise.all(previews).then(setFilePreviews);
   };
 
   const handleAsk = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim() && files.length === 0) return;
-
-    setMessages((prev) => prev.filter((msg) => !msg.preview));
 
     const userMessage: Message = {
       role: "user",
@@ -100,6 +85,7 @@ export default function AIAssistant({
       files: filePreviews,
     };
     setMessages((prev) => [...prev, userMessage]);
+
     setQuestion("");
     setFiles([]);
     setFilePreviews([]);
@@ -151,16 +137,6 @@ export default function AIAssistant({
     updatedPreviews.splice(index, 1);
     setFiles(updatedFiles);
     setFilePreviews(updatedPreviews);
-
-    if (updatedFiles.length === 0 && !question.trim()) {
-      setMessages((prev) => prev.filter((msg) => !msg.preview));
-    } else {
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.preview ? { ...msg, files: updatedPreviews } : msg
-        )
-      );
-    }
   };
 
   return (
@@ -173,7 +149,7 @@ export default function AIAssistant({
             {lang === "de" && "Beratung mit ERMA AI"}
           </h2>
           <button
-            onClick={() => router.push("/")}
+            onClick={onClose}
             className="ml-auto text-gray-500 hover:text-gray-700"
             aria-label="Затвори чата"
           >
@@ -223,11 +199,6 @@ export default function AIAssistant({
                       </div>
                     ))}
                   </div>
-                )}
-                {msg.preview && (
-                  <span className="mt-1 block text-xs text-yellow-400">
-                    (Преглед, не е изпратен)
-                  </span>
                 )}
               </div>
             </div>
