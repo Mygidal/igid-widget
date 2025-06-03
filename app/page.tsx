@@ -41,7 +41,7 @@ export default function Home() {
           </button>
         )}
 
-        {open && <AIWidget onClose={() => setOpen(false)} />}
+        {open && <AIWidget />}
 
         <div className="flex gap-4 items-center flex-col sm:flex-row">
           {/* ... бутоните за Deploy и Docs остават същите ... */}
