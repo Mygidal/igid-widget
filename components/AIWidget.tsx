@@ -9,7 +9,7 @@ type Message = {
   files?: { name: string; url: string }[];
 };
 
-export default function AIAssistant({
+export default function AIWidget({
   lang = "bg",
   onClose,
 }: {
@@ -34,13 +34,12 @@ export default function AIAssistant({
   ]);
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
 
-  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages]);
 
@@ -140,8 +139,9 @@ export default function AIAssistant({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-blue-50 to-gray-100 overflow-hidden overscroll-contain touch-manipulation">
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden bg-gradient-to-br from-blue-50 to-gray-100 overscroll-contain touch-manipulation">
       <div className="flex h-full w-full max-w-[100vw] flex-col border border-gray-200 bg-white shadow-xl sm:rounded-xl max-h-[100svh]">
+        {/* Header */}
         <div className="flex items-center border-b px-4 py-3">
           <h2 className="flex-1 text-center text-lg font-semibold text-blue-900">
             {lang === "bg" && "Консултация с ERMA AI"}
@@ -157,9 +157,10 @@ export default function AIAssistant({
           </button>
         </div>
 
+        {/* Chat messages */}
         <div
-          ref={chatContainerRef}
-          className="flex-1 space-y-4 overflow-y-auto bg-gray-50 px-4 py-4 text-sm scroll-smooth"
+          ref={chatRef}
+          className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-gray-50 text-sm"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {messages.map((msg, idx) => (
@@ -179,8 +180,8 @@ export default function AIAssistant({
                 {msg.content}
                 {msg.files && msg.files.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {msg.files.map((file, fileIdx) => (
-                      <div key={fileIdx}>
+                    {msg.files.map((file, i) => (
+                      <div key={i}>
                         {file.name.match(/\.(jpg|jpeg|png)$/i) ? (
                           <img
                             src={file.url}
@@ -205,8 +206,10 @@ export default function AIAssistant({
           ))}
         </div>
 
+        {/* Attached files under input */}
         <AttachedFiles files={filePreviews} onRemove={handleRemoveFile} />
 
+        {/* Footer form */}
         <form
           onSubmit={handleAsk}
           className="flex items-end gap-2 border-t bg-white px-4 py-3 sticky bottom-0 z-10"
