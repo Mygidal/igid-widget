@@ -102,7 +102,6 @@ export default function AIWidget({
         body: formData,
       });
       const text = await res.text();
-      console.log("📦 API RAW RESPONSE:", text);
       const data = JSON.parse(text);
 
       if (res.ok) {
@@ -140,9 +139,10 @@ export default function AIWidget({
     setFilePreviews(updatedPreviews);
   };
 
-  return (
-    <div className="fixed inset-0 flex flex-col overflow-x-hidden bg-gradient-to-br from-blue-50 to-gray-100">
-      <div className="flex h-full w-full max-w-[100vw] flex-col rounded-none border border-gray-200 bg-white shadow-xl">
+  function renderChatBody() {
+    return (
+      <>
+        {/* Header */}
         <div className="flex items-center border-b px-4 py-3">
           <div className="flex-1 text-center">
             <h2 className="text-lg font-semibold text-blue-900">
@@ -179,6 +179,7 @@ export default function AIWidget({
           </button>
         </div>
 
+        {/* Messages */}
         <div
           ref={chatContainerRef}
           className="chat-container-wrapper flex-1 space-y-4 overflow-y-auto bg-gray-50 px-4 py-4"
@@ -229,6 +230,7 @@ export default function AIWidget({
 
         <AttachedFiles files={filePreviews} onRemove={handleRemoveFile} />
 
+        {/* Footer */}
         <form
           onSubmit={handleAsk}
           className="flex items-end gap-2 rounded-b-2xl border-t bg-white px-4 py-3"
@@ -279,8 +281,9 @@ export default function AIWidget({
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             rows={1}
-            className="chat-textarea flex-1 border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-300"
+            className="flex-1 text-sm border-none outline-none placeholder-gray-400 resize-none overflow-hidden bg-transparent leading-[1.4rem] min-h-[36px] py-[6px] pl-2"
           />
+
           <button
             type="submit"
             disabled={
@@ -326,6 +329,20 @@ export default function AIWidget({
             )}
           </button>
         </form>
+      </>
+    );
+  }
+
+  return (
+    <div>
+      {/* 📱 Мобилен - fullscreen */}
+      <div className="sm:hidden fixed inset-0 flex flex-col overflow-x-hidden bg-gradient-to-br from-blue-50 to-gray-100">
+        {renderChatBody()}
+      </div>
+
+      {/* 🖥 Десктоп - долу вдясно */}
+      <div className="hidden sm:flex fixed bottom-4 right-4 z-50 w-[400px] h-[90vh] rounded-xl border border-gray-200 bg-white shadow-xl flex-col overflow-hidden">
+        {renderChatBody()}
       </div>
     </div>
   );
