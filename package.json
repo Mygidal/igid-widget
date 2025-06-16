@@ -9,16 +9,25 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "mammoth": "^1.9.1",
+    "next": "15.3.3",
+    "pdf2pic": "^3.2.0",
+    "pdfjs-dist": "^2.16.105",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.3.3"
+    "tesseract.js": "^6.0.1",
+    "textract": "^2.5.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/pdf-parse": "^1.1.5",
+    "@types/pdfjs-dist": "^2.10.377",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4"
+    "@types/textract": "^2.4.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }

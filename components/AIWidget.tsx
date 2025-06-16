@@ -1,166 +1,40 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import AttachedFiles from "./AttachedFiles";
+import useAIChat from "../hooks/useAIChat";
 
-type Message = {
-  role: "user" | "assistant";
-  content: string;
-  files?: { name: string; url: string }[];
+type Props = {
+  onClose: () => void;
 };
 
-export default function AIWidget({
-  lang = "bg",
-  onClose,
-}: {
-  lang?: "bg" | "en" | "de";
-  onClose: () => void;
-}) {
-  const [files, setFiles] = useState<File[]>([]);
-  const [filePreviews, setFilePreviews] = useState<
-    { name: string; url: string }[]
-  >([]);
-  const [question, setQuestion] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content:
-        lang === "bg"
-          ? "Здравей! Аз съм ERMA AI. С какво мога да помогна?"
-          : lang === "en"
-          ? "Hello! I'm ERMA AI. How can I assist you?"
-          : "Hallo! Ich bin ERMA AI. Wie kann ich helfen?",
-    },
-  ]);
-  const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
+export default function AIWidget({ onClose }: Props) {
+  const {
+    messages,
+    question,
+    setQuestion,
+    files,
+    filePreviews,
+    status,
+    chatContainerRef,
+    textareaRef,
+    handleFileChange,
+    handleAsk,
+    handleRemoveFile,
+  } = useAIChat("bg");
 
-  const chatContainerRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop =
-        chatContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
-    }
-  }, [question]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = e.target.files;
-    if (!selectedFiles) return;
-
-    const fileArray = Array.from(selectedFiles);
-    setFiles(fileArray);
-
-    const previews = fileArray.map(
-      (file) =>
-        new Promise<{ name: string; url: string }>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            resolve({
-              name: file.name,
-              url: typeof reader.result === "string" ? reader.result : "",
-            });
-          };
-          reader.readAsDataURL(file);
-        })
-    );
-
-    Promise.all(previews).then(setFilePreviews);
-  };
-
-  const handleAsk = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!question.trim() && files.length === 0) return;
-
-    const userMessage: Message = {
-      role: "user",
-      content: question,
-      files: filePreviews,
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setQuestion("");
-    setFiles([]);
-    setFilePreviews([]);
-    setStatus("sending");
-
-    const formData = new FormData();
-    formData.append("question", question || "Потребителят качи файлове.");
-    formData.append("lang", lang);
-    files.forEach((file) => formData.append("attachment", file));
-
-    try {
-      const res = await fetch("/api/ask", {
-        method: "POST",
-        body: formData,
-      });
-      const text = await res.text();
-      const data = JSON.parse(text);
-
-      if (res.ok) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            content: data.answer || "🤖 Няма отговор от ERMA AI.",
-            files: data.files || [],
-          },
-        ]);
-        setStatus("idle");
-      } else {
-        throw new Error(data.error || "Грешка при отговора.");
-      }
-    } catch (err) {
-      console.error("❌ Chat error:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "⚠️ Възникна грешка при свързване с ERMA AI.",
-        },
-      ]);
-      setStatus("error");
-    }
-  };
-
-  const handleRemoveFile = (index: number) => {
-    const updatedFiles = [...files];
-    const updatedPreviews = [...filePreviews];
-    updatedFiles.splice(index, 1);
-    updatedPreviews.splice(index, 1);
-    setFiles(updatedFiles);
-    setFilePreviews(updatedPreviews);
-  };
-
-  function renderChatBody() {
-    return (
-      <>
-        {/* Header */}
+  return (
+    <div className="fixed inset-0 flex flex-col overflow-x-hidden bg-gradient-to-br from-blue-50 to-gray-100 z-50">
+      <div className="flex h-full w-full max-w-[100vw] flex-col rounded-none border border-gray-200 bg-white shadow-xl">
         <div className="flex items-center border-b px-4 py-3">
           <div className="flex-1 text-center">
             <h2 className="text-lg font-semibold text-blue-900">
-              {lang === "bg" && "Консултация с ERMA AI"}
-              {lang === "en" && "ERMA AI"}
-              {lang === "de" && "ERMA AI"}
+              Консултация с ERMA AI
             </h2>
           </div>
           <button
             onClick={onClose}
-            className="ml-auto text-gray-500 hover:text-gray-700"
-            aria-label={
-              lang === "bg"
-                ? "Затвори чата"
-                : lang === "de"
-                ? "Chat schließen"
-                : "Close chat"
-            }
+            className="ml-auto text-gray-500 transition-colors hover:text-gray-700"
+            aria-label="Затвори чата"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -179,7 +53,6 @@ export default function AIWidget({
           </button>
         </div>
 
-        {/* Messages */}
         <div
           ref={chatContainerRef}
           className="chat-container-wrapper flex-1 space-y-4 overflow-y-auto bg-gray-50 px-4 py-4"
@@ -208,7 +81,7 @@ export default function AIWidget({
                           <img
                             src={file.url}
                             alt={file.name}
-                            className="rounded-lg"
+                            className="rounded-lg max-w-[200px]"
                           />
                         ) : (
                           <a
@@ -223,6 +96,11 @@ export default function AIWidget({
                     ))}
                   </div>
                 )}
+                {msg.preview && (
+                  <span className="mt-1 block text-xs text-yellow-400">
+                    (Преглед, не е изпратен)
+                  </span>
+                )}
               </div>
             </div>
           ))}
@@ -230,7 +108,6 @@ export default function AIWidget({
 
         <AttachedFiles files={filePreviews} onRemove={handleRemoveFile} />
 
-        {/* Footer */}
         <form
           onSubmit={handleAsk}
           className="flex items-end gap-2 rounded-b-2xl border-t bg-white px-4 py-3"
@@ -246,13 +123,7 @@ export default function AIWidget({
           <label
             htmlFor="attachFile"
             className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300"
-            title={
-              lang === "bg"
-                ? "Прикачи файл"
-                : lang === "de"
-                ? "Datei anhängen"
-                : "Attach file"
-            }
+            title="Прикачи файл"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -271,17 +142,11 @@ export default function AIWidget({
           </label>
           <textarea
             ref={textareaRef}
-            placeholder={
-              lang === "bg"
-                ? "Съобщение..."
-                : lang === "de"
-                ? "Stelle eine Frage oder beschreibe dein Projekt..."
-                : "Ask a question or describe your project..."
-            }
+            placeholder="Съобщение..."
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             rows={1}
-            className="flex-1 text-sm border-none outline-none placeholder-gray-400 resize-none overflow-hidden bg-transparent leading-[1.4rem] min-h-[36px] py-[6px] pl-2"
+            className="chat-textarea flex-1 border border-gray-300 text-base focus:outline-none focus:ring-2 focus:ring-blue-300"
           />
           <button
             type="submit"
@@ -328,22 +193,6 @@ export default function AIWidget({
             )}
           </button>
         </form>
-      </>
-    );
-  }
-
-  return (
-    <div>
-      {/* 📱 Мобилен — fullscreen */}
-      <div className="sm:hidden fixed inset-0 flex flex-col bg-gradient-to-br from-blue-50 to-gray-100 z-50">
-        <div className="flex flex-1 w-full max-w-[100vw] flex-col rounded-none border bg-white shadow-xl max-h-[100svh]">
-          {renderChatBody()}
-        </div>
-      </div>
-
-      {/* 🖥 Десктоп - долу вдясно */}
-      <div className="hidden sm:flex fixed bottom-4 right-4 z-50 w-[400px] h-[90vh] rounded-xl border border-gray-200 bg-white shadow-xl flex-col overflow-hidden">
-        {renderChatBody()}
       </div>
     </div>
   );

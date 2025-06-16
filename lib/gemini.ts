@@ -1,27 +1,31 @@
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
+const systemPrompt = `
+Ти си AI асистент на строителна фирма ERMA.
+Отговаряй ясно, кратко и на български. При нужда искай уточнение от потребителя.
+`.trim();
+
 export async function askGemini(
   question: string,
-  files: File[] = [] // запазено за бъдеща поддръжка
+  files: File[] = []
 ): Promise<string> {
   if (!GEMINI_API_KEY) {
     console.error("❌ Липсва Gemini API ключ!");
     return "Вътрешна грешка: API ключът липсва.";
   }
 
-  const systemPrompt = `
-Ти си AI асистент на строителна фирма ERMA.
-Отговаряй ясно, кратко и на български. При нужда искай уточнение от потребителя.
-`.trim();
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`;
 
   const contents = [
     {
       role: "user",
-      parts: [{ text: systemPrompt }, { text: question }],
+      parts: [
+        { text: systemPrompt },
+        { text: question },
+        // Бъдеща поддръжка за файлове като blob references
+      ],
     },
   ];
-
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`;
 
   try {
     const res = await fetch(endpoint, {
@@ -37,10 +41,14 @@ export async function askGemini(
     }
 
     const data = await res.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    const reply =
+      data?.candidates?.length > 0
+        ? data.candidates[0]?.content?.parts?.[0]?.text
+        : null;
 
     if (!reply) {
-      console.warn("⚠️ Няма текстов отговор от Gemini:", data);
+      console.warn("⚠️ Няма текстов отговор от Gemini:", JSON.stringify(data));
       return "Няма отговор от AI.";
     }
 
